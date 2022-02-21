@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hojun">
+	<select id="getCnt" parameterType="hashMap" resultType="int">
+	SELECT
+    	COUNT(*)
+	FROM
+    	TEST
+	WHERE
+    	1=1
+ 	<if test="searchTxt != null and searchTxt !=''">
+		<choose>
+			<when test="searchType == 'all'">
+		    AND (KORNAME LIKE '%' || #{searchTxt} ||'%'
+		    OR RESNO LIKE '%' || #{searchTxt} ||'%'
+		    OR GENDER LIKE '%' || #{searchTxt} ||'%'
+		    OR GRADE LIKE '%' || #{searchTxt} ||'%'
+		    OR JOINTYPE LIKE '%' || #{searchTxt} ||'%'
+		    OR HOPEJOB LIKE '%' || #{searchTxt} ||'%')
+		    </when>
+		    <when test="searchType == 'korname'">
+		    AND KORNAME LIKE '%' || #{searchTxt} ||'%'
+		    </when>
+		    <when test="searchType == 'gender'">
+		    AND GENDER LIKE '%' || #{searchTxt} ||'%'
+		    </when>
+		    <when test="searchType == 'grade'">
+		    AND GRADE LIKE '%' || #{searchTxt} ||'%'
+		    </when>
+	    </choose>
+    </if>
+    <if test="genderSearch !='all'">
+    	AND GENDER = #{genderSearch}
+    </if>
+    <if test="gradeSearch !='all'">
+    	AND GRADE = #{gradeSearch}
+    </if>
+    <if test="jointypeSearch !='all'">
+    	AND JOINTYPE = #{jointypeSearch}
+    </if>
+    <if test="hopejobSearch !='all'">
+    	AND HOPEJOB = #{hopejobSearch}
+    </if>
+	
+
+	</select>
+
+	<select id="getList" parameterType="hashMap" resultType="hashMap">
+    SELECT
+	    RN,
+	    INDEXNO,
+	    KORNAME,
+	    RESNO,
+	    GENDER,
+	    GRADE,
+	    JOINTYPE,
+        HOPEJOB,
+        EXCELLOCAL,
+	    WORDLOCAL
+	FROM(
+	    SELECT
+	        ROWNUM RN,
+	        INDEXNO,
+	        KORNAME,
+	        RESNO,
+	        CASE GENDER WHEN '1' THEN '남' ELSE '여' END GENDER,
+	        GRADE,
+	        CASE JOINTYPE WHEN '1' THEN '정규직' ELSE '계약직' END JOINTYPE,
+	        CASE HOPEJOB WHEN '1' THEN 'SI' ELSE 'SM' END HOPEJOB,
+	        EXCELLOCAL,
+	        WORDLOCAL
+	    FROM(
+	        SELECT 
+	            INDEXNO,
+	            KORNAME,
+	            RESNO,
+	            GENDER,
+	            GRADE,
+	            JOINTYPE,
+	            HOPEJOB,
+	            EXCELLOCAL,
+	            WORDLOCAL
+	        FROM
+	            TEST
+	        ORDER BY 
+	            INDEXNO DESC)
+	            WHERE 1=1
+	                <if test="genderSearch !='all'">
+				    	AND GENDER = #{genderSearch}
+				    </if>
+				    <if test="gradeSearch !='all'">
+				    	AND GRADE = #{gradeSearch}
+				    </if>
+				    <if test="jointypeSearch !='all'">
+				    	AND JOINTYPE = #{jointypeSearch}
+				    </if>
+				    <if test="hopejobSearch !='all'">
+				    	AND HOPEJOB = #{hopejobSearch}
+				    </if> 
+	            )
+	WHERE 1=1
+	<if test="searchTxt != null and searchTxt !=''">
+		<choose>
+			<when test="searchType == 'all'">
+		    AND (KORNAME LIKE '%' || #{searchTxt} ||'%'
+		    OR RESNO LIKE '%' || #{searchTxt} ||'%'
+		    OR GENDER LIKE '%' || #{searchTxt} ||'%'
+		    OR GRADE LIKE '%' || #{searchTxt} ||'%'
+		    OR JOINTYPE LIKE '%' || #{searchTxt} ||'%'
+		    OR HOPEJOB LIKE '%' || #{searchTxt} ||'%')
+		    </when>
+		    <when test="searchType == 'korname'">
+		    AND KORNAME LIKE '%' || #{searchTxt} ||'%'
+		    </when>
+		    <when test="searchType == 'gender'">
+		    AND GENDER LIKE '%' || #{searchTxt} ||'%'
+		    </when>
+		    <when test="searchType == 'grade'">
+		    AND GRADE LIKE '%' || #{searchTxt} ||'%'
+		    </when>
+	    </choose>
+   </if>
+   AND RN BETWEEN #{startCnt} AND #{endCnt}
+
+    
+	</select>
+	
+	
+	<insert id="setInsert" parameterType="hashMap">
+	INSERT INTO TEST
+    (KORNAME
+    ,ENGNAME
+    ,CHNNAME
+    ,IMGNAME
+    ,IMGLOCAL
+    ,GENDER
+    ,YEAR
+    ,PAYTYPE
+    ,HOPEJOB
+    ,ADDRESS1
+    ,ADDRESS2
+    ,PHONENO
+    ,EMAIL
+    ,GRADE
+    ,HOFF
+    ,RESNO
+    ,BIRTHLUNAR
+    ,MARRY
+    ,JOINTYPE
+    ,INDEXNO
+    ,BIRTH
+    ,EXCELNAME
+    ,EXCELLOCAL
+    ,WORDNAME
+    ,WORDLOCAL
+    )
+    VALUES
+    (#{korname}
+    ,#{engname}
+    ,#{chnname}
+    ,#{imgname}
+    ,#{imglocal}
+    ,#{gender}
+    ,#{year}
+    ,#{paytype}
+    ,#{hopejob}
+    ,#{address1}
+    ,#{address2}
+    ,#{phoneno1} || '-' || #{phoneno2} || '-' || #{phoneno3}
+    ,#{email}
+    ,#{grade}
+    ,#{hoff}
+    ,#{resno1}|| '-' ||#{resno2}
+    ,#{marry}
+    ,#{birthlunar}
+    ,#{jointype}
+    ,INDEXNO.NEXTVAL
+    ,#{birth1}||#{birth2}||#{birth3}
+    ,#{excelname}
+    ,#{excellocal}
+    ,#{wordname}
+    ,#{wordlocal}
+    )
+	</insert>
+	
+	<select id="getContent" parameterType="String" resultType="hashMap">
+		SELECT
+			INDEXNO
+		      ,SUBSTR(BIRTH , 1 , 4) BIRTH1
+   			 ,SUBSTR(BIRTH , 5 , 2) BIRTH2
+   			 ,SUBSTR(BIRTH , 7 , 2) BIRTH3
+		     ,KORNAME
+		    ,ENGNAME
+		    ,CHNNAME
+		    ,IMGNAME
+		    ,IMGLOCAL
+		    ,GENDER 
+		    ,YEAR
+		    ,PAYTYPE
+		    ,HOPEJOB
+		    ,ADDRESS1
+		    ,ADDRESS2
+		    ,SUBSTR(PHONENO , 1 , 3) PHONENO1
+		    ,SUBSTR(PHONENO , 5 , 4) PHONENO2
+		    ,SUBSTR(PHONENO , 10 , 4) PHONENO3
+		    ,EMAIL
+		    ,GRADE
+		    ,HOFF
+		    ,SUBSTR(RESNO , 1 , 6) RESNO1
+		    ,SUBSTR(RESNO , 8 , 7) RESNO2
+		    ,BIRTHLUNAR
+		    ,MARRY
+		    ,JOINTYPE
+		    ,INDEXNO
+		    ,EXCELNAME
+			,EXCELLOCAL
+			,WORDNAME
+			,WORDLOCAL
+		FROM 
+		    TEST
+		WHERE INDEXNO = #{indexno}
+	</select>
+	
+	<update id="setModify" parameterType="hashMap" >
+	UPDATE TEST  SET 
+		KORNAME= #{korname} 
+		,ENGNAME=#{engname}
+		,CHNNAME=#{chnname}
+		,IMGNAME=#{imgname}
+		,IMGLOCAL=#{imglocal}
+		,GENDER=#{gender}
+		,YEAR=#{year}
+		,PAYTYPE=#{paytype}
+		,HOPEJOB=#{hopejob}
+		,ADDRESS1=#{address1}
+		,ADDRESS2=#{address2}
+		,PHONENO=#{phoneno1}||'-'||#{phoneno2}||'-'||#{phoneno3}
+		,EMAIL=#{email}
+		,GRADE=#{grade}
+		,HOFF=#{hoff}
+		,RESNO=#{resno1}||'-'||#{resno2}
+		,BIRTHLUNAR=#{birthlunar}
+		,MARRY=#{marry}
+		,JOINTYPE=#{jointype}
+		,BIRTH=#{birth1}||#{birth2}||#{birth3}
+		,EXCELNAME=#{excelname}
+		,EXCELLOCAL=#{excellocal}
+		,WORDNAME=#{wordname}
+		,WORDLOCAL=#{wordlocal}
+	WHERE INDEXNO=#{indexno}
+	</update>
+	
+	<delete id="setDelete" parameterType="hashMap">
+	DELETE
+	FROM TEST
+	WHERE INDEXNO IN
+	<foreach collection="list" item="item" index="key" separator="," open="(" close=")"  >
+        #{item}
+    </foreach>
+	</delete>
+	
+	<select id="getRes" parameterType="hashMap" resultType="int">
+	SELECT COUNT(*)
+	FROM TEST
+	WHERE RESNO = #{resno1} || '-' ||#{resno2} 
+	<if test="indexno !=null">
+	AND INDEXNO !=#{indexno}
+	</if>
+	</select>
+	
+</mapper>
